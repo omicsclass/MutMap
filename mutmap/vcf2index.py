@@ -15,6 +15,8 @@ class Vcf2Index(object):
     def __init__(self, args):
         self.out = args.out
         self.vcf = args.vcf
+        self.ref = args.ref
+        self.bulkID = args.bulkID
         self.snpEff = args.snpEff
         self.species = args.species
         self.N_bulk = args.N_bulk
@@ -72,7 +74,6 @@ class Vcf2Index(object):
             sys.exit(1)
 
         return k
-
     def get_field(self):
         root, ext = os.path.splitext(self.vcf)
         if ext == '.gz':
@@ -108,6 +109,21 @@ class Vcf2Index(object):
                 break
         vcf.close()
         return GT_pos, AD_pos, ADF_pos, ADR_pos
+    
+    def get_sample_field(self):
+        root, ext = os.path.splitext(self.vcf)
+        if ext == '.gz':
+            vcf = gzip.open(self.vcf, 'rt')
+        else:
+            vcf = open(self.vcf, 'r')
+        for line in vcf:
+            if re.match(r'^#C', line):
+                fields = line.split()
+                p_pos=fields.index(self.ref)
+                b_pos=fields.index(self.bulkID)
+                break
+        vcf.close()
+        return p_pos, b_pos
 
     def get_variant_impact(self, annotation):
         ANN = self.ANN_re.findall(annotation)[0]
@@ -171,9 +187,12 @@ class Vcf2Index(object):
                 ADF_pos = field_pos[2]
                 ADR_pos = field_pos[3]
 
-                cultivar_GT = cols[9].split(':')[GT_pos]
-                cultivar_AD = cols[9].split(':')[AD_pos]
-                bulk_AD = cols[10].split(':')[AD_pos]
+                ref_pos=self.sample_field_pos[0]
+                bulk_pos=self.sample_field_pos[1]
+
+                cultivar_GT = cols[ref_pos].split(':')[GT_pos]
+                cultivar_AD = cols[ref_pos].split(':')[AD_pos]
+                bulk_AD = cols[bulk_pos].split(':')[AD_pos]
 
                 if ADF_pos != None and ADR_pos != None:
                     cultivar_ADF = cols[9].split(':')[ADF_pos]
@@ -215,6 +234,7 @@ class Vcf2Index(object):
     def run(self):
         print(time_stamp(), 'start to calculate SNP-index.', flush=True)
         field_pos = self.get_field()
+        self.sample_field_pos = self.get_sample_field()
         self.calc_SNPindex(field_pos)
         print(time_stamp(), 'SNP-index successfully finished.', flush=True)
 

@@ -244,7 +244,20 @@ class Params(object):
                             help=('VCF file which contains cultivar and mutant bulk.\n'
                                   'in this order. This VCF file must have AD field.'),
                             metavar='')
-
+        parser.add_argument('-r',
+                            '--ref',
+                            action='store',
+                            required=True,
+                            type=str,
+                            help=('Reference parent ID in vcf file\n'),
+                            metavar='')
+        parser.add_argument('-b',
+                            '--bulkID',
+                            action='store',
+                            required=True,
+                            type=str,
+                            help=('Bulked sample ID in vcf file\n'),
+                            metavar='')
         parser.add_argument('-o',
                             '--out',
                             action='store',
