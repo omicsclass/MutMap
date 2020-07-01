@@ -141,3 +141,4 @@ class Plot(object):
             ax.set_title(chr_name, fontsize=17)
 
         plt.savefig('{}/mutmap_plot.png'.format(self.out), format='png')
+        plt.savefig('{}/mutmap_plot.pdf'.format(self.out), format='pdf')
